@@ -1,0 +1,4 @@
+{
+  "method": "$context.httpMethod",
+  "message": "This request template was defined externally!"
+}

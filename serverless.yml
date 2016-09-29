@@ -1,0 +1,88 @@
+# This is a test service that tries out a few different features
+# and a plugin for defining a custom set of default responses,
+# including error responses.
+
+service: test
+
+provider:
+  name: aws
+  runtime: python2.7
+
+# what you define in custom is available to plugins
+custom:
+  standardResponseHeaders:
+    'Content-Type': "integration.response.body.content_type"
+  standardResponseTemplate: "$input.path('$.content')"
+  errorResponseTemplate: "$util.parseJson($input.path('$.errorMessage')).content"
+  standardResponses:
+    200:
+      headers: ${self:custom.standardResponseHeaders}
+      templates:
+        'application/json': ${self:custom.standardResponseTemplate}
+    400:
+      templates:
+        'application/json': ${self:custom.errorResponseTemplate}
+      properties:
+        SelectionPattern: '.*\"status\":\s?400.*'
+    404:
+      templates:
+        'application/json': ${self:custom.errorResponseTemplate}
+      properties:
+        SelectionPattern: '.*\"status\":\s?404.*'
+
+plugins:
+  - serverless-plugin-multiple-responses
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: GET
+          path: greet
+          responses: ${self:custom.standardResponses}
+      - http:
+          method: POST
+          path: greet
+          responses: ${self:custom.standardResponses}
+      - http:
+          method: GET
+          path: hola/{name}
+          responses: ${self:custom.standardResponses}
+  second:
+    handler: handler.second
+    events:
+      - http:
+          method: get
+          path: second
+          request:
+            template:
+              application/json: '{ "method" : "$context.httpMethod" }'
+          responses: ${self:custom.standardResponses}
+      - http:
+          method: get
+          path: extern
+          request:
+            template:
+              application/json: ${file(lib/templates/extern.txt)}
+          responses: ${self:custom.standardResponses}
+  ctype:
+    handler: handler.ctype
+    events:
+      - http:
+          method: get
+          path: type/{type}
+          responses: ${self:custom.standardResponses}
+  miss:
+    handler: handler.miss
+    events:
+      - http:
+          method: get
+          path: "{var+}"
+          responses: ${self:custom.standardResponses}
+# point of interest -
+# - http: GET {var}
+
+# another point of interest - {var} alone only matches the first
+# path segment, i.e. only 'foo' out of 'foo/bar'
+# AWS *just* released catch-all patterns (using +)
