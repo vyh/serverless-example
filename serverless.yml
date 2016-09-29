@@ -82,6 +82,7 @@ functions:
           responses: ${self:custom.standardResponses}
 # point of interest -
 # - http: GET {var}
+# works, but with path defined separately, unquoted {var} fails to deploy
 
 # another point of interest - {var} alone only matches the first
 # path segment, i.e. only 'foo' out of 'foo/bar'
