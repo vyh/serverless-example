@@ -14,12 +14,10 @@ package:
   individually: true
   include:
     - handlers/__init__.py
+    - lib/__init__.py
+    - lib/responses.py
   exclude:
-    - README.md
-    - events/
-    - node_modules/
-    - handlers/
-    - lib/templates/
+    - ""
 
 # what you define in custom is available to plugins
 custom:
