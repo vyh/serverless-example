@@ -40,12 +40,19 @@ custom:
         'application/json': ${self:custom.errorResponseTemplate}
       properties:
         SelectionPattern: '.*\"statusCode\":\s?404.*'
+  standardCors:
+    origins:
+      - '*'
+    headers:
+      - Authorization
+      - Content-Type
+      - User-Agent
 
 plugins:
   - serverless-plugin-multiple-responses
 
 # cors: true
-# is equivalent to
+# is a simpler option, equivalent to
 # cors:
 #   origins:
 #     - '*'
@@ -67,17 +74,17 @@ functions:
       - http:
           method: GET
           path: greet
-          cors: true
+          cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
       - http:
           method: POST
           path: greet
-          cors: true
+          cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
       - http:
           method: GET
           path: hola/{name}
-          cors: true
+          cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
   second:
     handler: handlers/second.handler
@@ -87,17 +94,17 @@ functions:
         - handlers/second/
     events:
       - http:
-          method: get
+          method: GET
           path: second
-          cors: true
+          cors: ${self:custom.standardCors}
           request:
             template:
               application/json: '{ "method" : "$context.httpMethod" }'
           responses: ${self:custom.standardResponses}
       - http:
-          method: get
+          method: GET
           path: extern
-          cors: true
+          cors: ${self:custom.standardCors}
           request:
             template:
               application/json: ${file(lib/templates/extern.txt)}
@@ -109,9 +116,9 @@ functions:
         - handlers/ctype/
     events:
       - http:
-          method: get
+          method: GET
           path: type/{type}
-          cors: true
+          cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
   miss:
     handler: handlers/miss.handler
@@ -120,7 +127,7 @@ functions:
         - handlers/miss/
     events:
       - http:
-          method: get
+          method: GET
           path: "{var+}"
           responses: ${self:custom.standardResponses}
 # point of interest -
