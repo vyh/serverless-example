@@ -1,4 +1,4 @@
-from . import BaseHandler
+from handlers import BaseHandler
 from lib.responses import HTTPNotFound
 
 

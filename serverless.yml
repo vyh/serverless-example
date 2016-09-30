@@ -7,13 +7,26 @@ service: test
 provider:
   name: aws
   runtime: python2.7
+  stage: dev
+
+# can globally exclude, then include function by function where needed
+package:
+  individually: true
+  include:
+    - handlers/__init__.py
+  exclude:
+    - README.md
+    - events/
+    - node_modules/
+    - handlers/
+    - lib/templates/
 
 # what you define in custom is available to plugins
 custom:
   standardResponseHeaders:
-    'Content-Type': "integration.response.body.content_type"
-  standardResponseTemplate: "$input.path('$.content')"
-  errorResponseTemplate: "$util.parseJson($input.path('$.errorMessage')).content"
+    'Content-Type': "integration.response.body.headers.Content-Type"
+  standardResponseTemplate: "$input.path('$.body')"
+  errorResponseTemplate: "$util.parseJson($input.path('$.errorMessage')).body"
   standardResponses:
     200:
       headers: ${self:custom.standardResponseHeaders}
@@ -23,38 +36,62 @@ custom:
       templates:
         'application/json': ${self:custom.errorResponseTemplate}
       properties:
-        SelectionPattern: '.*\"status\":\s?400.*'
+        SelectionPattern: '.*\"statusCode\":\s?400.*'
     404:
       templates:
         'application/json': ${self:custom.errorResponseTemplate}
       properties:
-        SelectionPattern: '.*\"status\":\s?404.*'
+        SelectionPattern: '.*\"statusCode\":\s?404.*'
 
 plugins:
   - serverless-plugin-multiple-responses
 
+# cors: true
+# is equivalent to
+# cors:
+#   origins:
+#     - '*'
+#   headers:
+#     - Content-Type
+#     - X-Amz-Date
+#     - Authorization
+#     - X-Api-Key
+#     - X-Amz-Security-Token
+# (https://github.com/serverless/serverless/blob/7d63e439a0140c5756a5efc8b612bdbdc664e752/docs/02-providers/aws/events/01-apigateway.md)
+
 functions:
   hello:
-    handler: handler.hello
+    handler: handlers/hello.handler
+    package:
+      include:
+        - handlers/hello/
     events:
       - http:
           method: GET
           path: greet
+          cors: true
           responses: ${self:custom.standardResponses}
       - http:
           method: POST
           path: greet
+          cors: true
           responses: ${self:custom.standardResponses}
       - http:
           method: GET
           path: hola/{name}
+          cors: true
           responses: ${self:custom.standardResponses}
   second:
-    handler: handler.second
+    handler: handlers/second.handler
+    package:
+      include:
+        - lib/templates/extern.txt
+        - handlers/second/
     events:
       - http:
           method: get
           path: second
+          cors: true
           request:
             template:
               application/json: '{ "method" : "$context.httpMethod" }'
@@ -62,19 +99,27 @@ functions:
       - http:
           method: get
           path: extern
+          cors: true
           request:
             template:
               application/json: ${file(lib/templates/extern.txt)}
           responses: ${self:custom.standardResponses}
   ctype:
-    handler: handler.ctype
+    handler: handlers/ctype.handler
+    package:
+      include:
+        - handlers/ctype/
     events:
       - http:
           method: get
           path: type/{type}
+          cors: true
           responses: ${self:custom.standardResponses}
   miss:
-    handler: handler.miss
+    handler: handlers/miss.handler
+    package:
+      include:
+        - handlers/miss/
     events:
       - http:
           method: get
@@ -86,4 +131,4 @@ functions:
 
 # another point of interest - {var} alone only matches the first
 # path segment, i.e. only 'foo' out of 'foo/bar'
-# AWS *just* released catch-all patterns (using +)
+# AWS released catch-all patterns (using +) 2016-09-20

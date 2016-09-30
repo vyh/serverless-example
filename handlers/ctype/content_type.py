@@ -1,4 +1,4 @@
-from . import BaseHandler
+from handlers import BaseHandler
 from lib.responses import Response, HTTPBadRequest
 
 
@@ -9,12 +9,12 @@ class ContentTypeHandler(BaseHandler):
 
         if 'html' == content_type:
             return Response(
-                content_type="text/html",
-                content="<html><head><title>Page title</title></head>"
+                headers={'Content-Type': 'text/html'},
+                body="<html><head><title>Page title</title></head>"
                      "<body>This is an html response.</body></html>")
 
         if 'csv' == content_type:
-            return Response(content_type="text/csv",
-                            content="type,v1,v2,v3\ncsv,1,2,3")
+            return Response(headers={"Content-Type": "text/csv"},
+                            body="type,v1,v2,v3\ncsv,1,2,3")
 
         raise HTTPBadRequest("Unsupported content type. Options: html, csv")

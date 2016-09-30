@@ -1,12 +1,12 @@
 # sample handler - the function, not the class, is the handler
-from . import BaseHandler
+from handlers import BaseHandler
 from lib.responses import Response
 
 
 class Second(BaseHandler):
 
     def get(self, event, context):
-        return Response(content={"message": self.message, "event": event})
+        return Response(body={"message": self.message, "event": event})
 
     @property
     def message(self):

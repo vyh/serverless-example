@@ -3,10 +3,10 @@ import json
 
 
 class Response(dict):
-    def __init__(self, status=200, content_type='application/json', content=None):  # NOQA
-        super(Response, self).__init__(status=status,
-                                       content_type=content_type,
-                                       content=Response.stringify(content))
+    def __init__(self, statusCode=200, headers=None, body=None):  # NOQA
+        super(Response, self).__init__(statusCode=statusCode,
+                                       headers=Response.init_headers(headers),
+                                       body=Response.stringify(body))
 
     @property
     def status(self):
@@ -17,37 +17,47 @@ class Response(dict):
         self['status'] = status
 
     @property
-    def content_type(self):
-        return self['content_type']
+    def headers(self):
+        return self['headers']
 
-    @content_type.setter
-    def content_type(self, content_type):
-        self['content_type'] = content_type
+    @headers.setter
+    def headers(self, headers):
+        # keys, values must be str - not checking that
+        if isinstance(headers, dict):
+            self['headers'].update(headers)
 
     @property
-    def content(self):
-        return self['content']
+    def body(self):
+        return self['body']
 
-    @content.setter
-    def content(self, content):
-        self['content'] = Response.stringify(content)
+    @body.setter
+    def body(self, body):
+        self['body'] = Response.stringify(body)
 
     @staticmethod
-    def stringify(content):
-        if isinstance(content, dict):
-            return json.dumps(content)
-        return str(content) if content else ""
+    def init_headers(headers):
+        default = {'Content-Type': 'application/json'}
+        headers = headers if isinstance(headers, dict) else default
+        if 'Content-Type' not in headers:
+            headers.update(default)
+        return headers
+
+    @staticmethod
+    def stringify(body):
+        if isinstance(body, dict):
+            return json.dumps(body)
+        return str(body) if body else ""
 
 
 class HTTPNotFound(Exception):
 
     def __init__(self, message="Not Found"):
         super(HTTPNotFound, self).__init__(
-            json.dumps(Response(status=404, content={"message": message})))
+            json.dumps(Response(statusCode=404, body={"message": message})))
 
 
 class HTTPBadRequest(Exception):
 
     def __init__(self, message="Bad Request"):
         super(HTTPBadRequest, self).__init__(
-            json.dumps(Response(status=400, content=message)))
+            json.dumps(Response(statusCode=400, body={"message": message})))
