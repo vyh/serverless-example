@@ -72,7 +72,6 @@ functions:
     handler: handlers/hello.handler
     package:
       include:
-        - lib/templates/extern.txt
         - handlers/hello/
     events:
       # return a message and the event object
