@@ -1,0 +1,6 @@
+{
+  "method": "POST",
+  "path": {},
+  "headers": {},
+  "body": {"name": "Serverless user"}
+}

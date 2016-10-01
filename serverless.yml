@@ -48,6 +48,9 @@ custom:
       - Content-Type
       - User-Agent
 
+# this plugin should become unnecessary when Lambda Proxy Integration is supported
+# (https://github.com/serverless/serverless/issues/2174)
+# on the other hand, that will push request parsing & response formatting into the function code
 plugins:
   - serverless-plugin-multiple-responses
 
@@ -69,42 +72,30 @@ functions:
     handler: handlers/hello.handler
     package:
       include:
+        - lib/templates/extern.txt
         - handlers/hello/
     events:
+      # return a message and the event object
       - http:
           method: GET
-          path: greet
+          path: hello
           cors: ${self:custom.standardCors}
-          responses: ${self:custom.standardResponses}
-      - http:
-          method: POST
-          path: greet
-          cors: ${self:custom.standardCors}
-          responses: ${self:custom.standardResponses}
-      - http:
-          method: GET
-          path: hola/{name}
-          cors: ${self:custom.standardCors}
-          responses: ${self:custom.standardResponses}
-  second:
-    handler: handlers/second.handler
-    package:
-      include:
-        - lib/templates/extern.txt
-        - handlers/second/
-    events:
-      - http:
-          method: GET
-          path: second
-          cors: ${self:custom.standardCors}
+          # custom request template as direct string
           request:
             template:
-              application/json: '{ "method" : "$context.httpMethod" }'
+              application/json: '{"method": "$context.httpMethod"}'
+          responses: ${self:custom.standardResponses}
+      # pulls and uses a value from the (json) request ("name")
+      - http:
+          method: POST
+          path: hello
+          cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
       - http:
           method: GET
-          path: extern
+          path: world
           cors: ${self:custom.standardCors}
+          # custom request template as read from file
           request:
             template:
               application/json: ${file(lib/templates/extern.txt)}
@@ -115,8 +106,10 @@ functions:
       include:
         - handlers/ctype/
     events:
+      # variable response content-type
       - http:
           method: GET
+          # capture a path param; query params are parsed by default
           path: type/{type}
           cors: ${self:custom.standardCors}
           responses: ${self:custom.standardResponses}
@@ -126,6 +119,7 @@ functions:
       include:
         - handlers/miss/
     events:
+      # returns 404 code for paths not matched elsewhere
       - http:
           method: GET
           path: "{var+}"
