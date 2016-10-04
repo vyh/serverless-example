@@ -3,6 +3,7 @@ import os
 import sys
 
 
+# add vendored/ to path to enable importing included packages
 here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "../vendored"))
 
