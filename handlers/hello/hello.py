@@ -1,4 +1,3 @@
-# sample handler - the function, not the class, is the handler
 from handlers import BaseHandler
 from lib.responses import Response
 
