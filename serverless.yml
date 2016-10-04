@@ -21,6 +21,7 @@ package:
 
 # what you define in custom is available to plugins
 custom:
+  testJsonImport: ${file(lib/templates/json_template.json)}
   standardResponseHeaders:
     'Content-Type': "integration.response.body.headers.Content-Type"
   standardResponseTemplate: "$input.path('$.body')"
@@ -70,9 +71,13 @@ plugins:
 functions:
   hello:
     handler: handlers/hello.handler
+    description: a sample lambda function
+    timeout: 7
+    memorySize: 256
     package:
       include:
         - handlers/hello/
+        - vendored/nltk/
     events:
       # return a message and the event object
       - http:
@@ -122,6 +127,15 @@ functions:
       - http:
           method: GET
           path: "{var+}"
+          request:
+            template:
+              # multi-line string; use a variable imported from a .json
+              # can instead do "${file(lib/templates/json_template.json):test}" directly
+              application/json: >
+                {
+                  "test": "${self:custom.testJsonImport.test}",
+                  "method": "$context.httpMethod"
+                }
           responses: ${self:custom.standardResponses}
 # point of interest -
 # - http: GET {var}

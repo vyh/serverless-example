@@ -6,7 +6,8 @@ from lib.responses import Response
 class Hello(BaseHandler):
 
     def get(self, event, context):
-        return Response(body={"message": "Hello via Serverless v1.0!",
+        from nltk import word_tokenize
+        return Response(body={"message": "Hello; import from nltk worked!",
                               "event": event})
 
     def post(self, event, context):

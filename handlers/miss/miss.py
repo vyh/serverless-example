@@ -5,7 +5,7 @@ from lib.responses import HTTPNotFound
 class Miss(BaseHandler):
 
     def get(self, event, context):
-        raise HTTPNotFound()
+        raise HTTPNotFound("Not found.\n" + str(event['test']))
 
     def post(self, event, context):
         raise HTTPNotFound()

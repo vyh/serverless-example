@@ -1,5 +1,4 @@
-# ignore node modules
 node_modules/*
-
-# ignore directories starting with .
+vendored/*
 .*/*
+*.pyc
